@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{%for article in user.articles %}
+<div id="container">
+    <p>
+    <h3>{{article.title}}</h3>
+    {#根据文章找作者#}
+    <div>作者:{{user.username}}</div>
+    {#在user表中定义了relationship 中的backref中反向引用了#}
+    </p>
+    <p>
+        {{article.content}}
+    </p>
+    <div>{{article.padatetime}}</div>
+</div>
+{% endfor %}
+
+</body>
+</html>
