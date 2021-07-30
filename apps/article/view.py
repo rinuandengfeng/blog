@@ -23,7 +23,7 @@ def pubilsh_article():
         return '添加成功!'
     else:
         users = User.query.filter(User.isdelete == False).all()
-        return render_template('article/add_article.html', users=users)
+        return render_template('article/add_article.html', user=users)
 
 
 @article_bp.route('/all', methods=['GET', 'POST'])
