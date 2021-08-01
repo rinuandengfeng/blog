@@ -68,7 +68,9 @@ def index():
     uid = session.get('uid')
     # 获取文章列表,按照文章的发表时间进行排序
     # 接收页码数
+
     page = request.args.get('page', 1)
+    page = int(page)
     pagination = Article.query.order_by(-Article.padatetime).paginate(page=page, per_page=3)
     # 获取分类列表
     types = Article_type.query.all()
@@ -231,10 +233,11 @@ def user_change():
         icon = request.files.get('icon')
         # 属性： filename 用户获取文件的名字
         # 方法： save(保存路径)
-        icon_name = icon.filename  # 获取文件的名字
+        icon_name = icon.filename # 获取文件的名字
+
         suffix = icon_name.rsplit('.')[-1]
         if suffix in ALLOWED_EXTENSIONS:
-            icon_name = secure_filename('/' + icon_name)  # secure_filename()保证文件名是符合python的命名规则
+            # icon_name = secure_filename('/' + icon_name)  # secure_filename()保证文件名是符合python的命名规则
             file_path = os.path.join(Config.UPLOAD_ICON_DIR, icon_name)
             icon.save(file_path)
             # 文件保存成功
