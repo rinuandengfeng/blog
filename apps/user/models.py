@@ -18,3 +18,14 @@ class User(db.Model):
 
     def __str__(self):
         return self.username
+
+
+
+class Photo(db.Model):
+    id = db.Column(db.Integer,primary_key=True,autoincrement=True)
+    photo_name = db.Column(db.String(50),nullable=False)
+    photo_datatime = db.Column(db.DateTime,default=datetime.now)
+    user_id = db.Column(db.Integer,db.ForeignKey('user.id'),nullable=False)
+
+    def __str__(self):
+        return self.photo_name

@@ -10,15 +10,16 @@ from werkzeug.utils import secure_filename
 
 from apps import app
 from apps.article.models import Article_type, Article
-from apps.user.models import User
+from apps.user.models import User, Photo
 from apps.user.smssend import SmsSendAPIDemo
+from apps.utils.utils import upload_qiniu
 from exts import db
 from settings import Config
 
 user_bp1 = Blueprint('user', __name__, url_prefix='/user')
 
 # 将需要的路由加入到这个钩子函数中，然后就走这个def before_request1():函数，所以里面的g.user就可以使用
-required_login_list = ['/user/center', '/user/change', '/article/publish']
+required_login_list = ['/user/center', '/user/change', '/article/publish', '/user/upload_photo']
 
 
 @user_bp1.before_app_first_request
@@ -215,7 +216,9 @@ def logout():
 @user_bp1.route('/center')
 def user_center():
     types = Article_type.query.all()
-    return render_template('user/center.html', user=g.user, types=types)
+    photos = Photo.query.filter(Photo.user_id == g.user.id).all()
+
+    return render_template('user/center.html', user=g.user, types=types, photos=photos)
 
 
 # 图片的扩展名
@@ -233,7 +236,7 @@ def user_change():
         icon = request.files.get('icon')
         # 属性： filename 用户获取文件的名字
         # 方法： save(保存路径)
-        icon_name = icon.filename # 获取文件的名字
+        icon_name = icon.filename  # 获取文件的名字
 
         suffix = icon_name.rsplit('.')[-1]
         if suffix in ALLOWED_EXTENSIONS:
@@ -266,3 +269,40 @@ def user_change():
         # user.email = email
         # db.session.commit()
     return render_template('user/center.html', user=g.user)
+
+
+# 上传照片
+
+@user_bp1.route('/upload_photo', methods=['GET', 'POST'])
+def upload_photo():
+    # 获取上传的照片
+    photo = request.files.get('photo')  # FileStorage
+    # 把照片上传到七牛云云存储
+    # 在工具模块封装好的
+    info, ret = upload_qiniu(photo)
+    if info.status_code == 200:
+        photo = Photo()
+        # 取出文件名
+        photo.photo_name = ret
+        photo.user_id = g.user.id
+        db.session.add(photo)
+        db.session.commit()
+        return '上传成功'
+    else:
+        return '上传失败'
+
+
+@user_bp1.route('/myphoto')
+def myphoto():
+    # 默认第一页
+    page = int(request.args.get('page', 1))
+    # 分页，返回的是paginate对象
+    photos = Photo.query.paginate(page=page, per_page=3)
+
+    user_id = session['uid']
+    user = None
+    if user_id:
+        user = User.query.get(user_id)
+    else:
+        user=user
+    return render_template('user/myphoto.html', photos=photos, user=user)
