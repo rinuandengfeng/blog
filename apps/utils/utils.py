@@ -1,13 +1,13 @@
 import os
 import random
 
-from qiniu import Auth, put_file, etag, put_data
+from qiniu import Auth, put_file, etag, put_data, BucketManager
 import qiniu.config
-
+from settings import Config
 
 def upload_qiniu(filestorage):
     # 需要填写你的 Access Key 和 Secret Key
-    from settings import Config
+
 
     access_key = 'MnbL-ZEB56Qfd6zYieG1rWZmfyTNPOGtOCNMkWbA'
     secret_key = 'LYuWGlJq8_FxKH-d_BNiwKsdhQ8rNm-THfUyP6yr'
@@ -38,3 +38,21 @@ def upload_qiniu(filestorage):
     # ret, info = put_file(token, key, localfile, version='v2')
     ret, info = put_data(token, key, filestorage.read())  # filesstorage.read()是读取这些文件的二进制流
     return info, key
+
+
+
+def del_qiniu(filename):
+    access_key = 'MnbL-ZEB56Qfd6zYieG1rWZmfyTNPOGtOCNMkWbA'
+    secret_key = 'LYuWGlJq8_FxKH-d_BNiwKsdhQ8rNm-THfUyP6yr'
+
+    # 构建鉴权对象
+    q = Auth(access_key, secret_key)
+
+    # 要上传的空间
+    bucket_name = 'myblog20'
+    # 初始化BucketManager
+    bucket = BucketManager(q)
+    #文件的名字 key是要删除的文件的名字
+    key = filename
+    ret, info = bucket.delete(bucket_name, key)
+    return info

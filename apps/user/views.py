@@ -12,14 +12,14 @@ from apps import app
 from apps.article.models import Article_type, Article
 from apps.user.models import User, Photo
 from apps.user.smssend import SmsSendAPIDemo
-from apps.utils.utils import upload_qiniu
+from apps.utils.utils import upload_qiniu, del_qiniu
 from exts import db
 from settings import Config
 
 user_bp1 = Blueprint('user', __name__, url_prefix='/user')
 
 # 将需要的路由加入到这个钩子函数中，然后就走这个def before_request1():函数，所以里面的g.user就可以使用
-required_login_list = ['/user/center', '/user/change', '/article/publish', '/user/upload_photo']
+required_login_list = ['/user/center', '/user/change', '/article/publish', '/user/upload_photo','/user/photo_del']
 
 
 @user_bp1.before_app_first_request
@@ -272,7 +272,6 @@ def user_change():
 
 
 # 上传照片
-
 @user_bp1.route('/upload_photo', methods=['GET', 'POST'])
 def upload_photo():
     # 获取上传的照片
@@ -287,11 +286,28 @@ def upload_photo():
         photo.user_id = g.user.id
         db.session.add(photo)
         db.session.commit()
-        return '上传成功'
+        return redirect(url_for('user.user_center'))
     else:
         return '上传失败'
 
 
+# 删除相册图片
+@user_bp1.route('/photo_del')
+def photo_del():
+    pid = request.args.get('pid')
+    photo = Photo.query.get(pid)
+    filename = photo.photo_name
+    # 封装号的一个删除七牛云存储的函数
+    info = del_qiniu(filename)
+    if info.status_code == 200:
+        #删除数据库的内容
+        db.session.delete(photo)
+        db.session.commit()
+        return redirect(url_for('user.user_center'))
+    else:
+
+        return render_template('500.html',err_msg='删除相册图片失败!')
+# 我的相册
 @user_bp1.route('/myphoto')
 def myphoto():
     # 默认第一页
@@ -304,5 +320,11 @@ def myphoto():
     if user_id:
         user = User.query.get(user_id)
     else:
-        user=user
+        user = user
     return render_template('user/myphoto.html', photos=photos, user=user)
+
+
+@user_bp1.route('/error')
+def test_error():
+    referer = request.headers.get('Referer',None)
+    return render_template('500.html',err_msg="有误",referer=referer)
