@@ -19,7 +19,12 @@ from settings import Config
 user_bp1 = Blueprint('user', __name__, url_prefix='/user')
 
 # 将需要的路由加入到这个钩子函数中，然后就走这个def before_request1():函数，所以里面的g.user就可以使用
-required_login_list = ['/user/center', '/user/change', '/article/publish', '/user/upload_photo','/user/photo_del']
+required_login_list = ['/user/center',
+                       '/user/change',
+                       '/article/publish',
+                       '/user/upload_photo',
+                       '/user/photo_del',
+                       '/article/add_comment']
 
 
 @user_bp1.before_app_first_request
@@ -31,7 +36,7 @@ def first_request():
 #  重点
 @user_bp1.before_app_request
 def before_request1():
-    print('before_app_request', request.path)
+    # print('before_app_request', request.path)
     if request.path in required_login_list:
         id = session.get('uid')
         if not id:
@@ -56,8 +61,8 @@ def teardown_request_test(response):
 # 自定义过滤器  将二进制文件转化为utf-8
 @user_bp1.app_template_filter('cdecode')
 def content_decode(content):
-    content = content.decode('utf-8')
-    return content[:200]
+    content = content.decode(encoding='utf-8')
+    return content[:10]
 
 
 # 首页
@@ -73,6 +78,7 @@ def index():
     page = request.args.get('page', 1)
     page = int(page)
     pagination = Article.query.order_by(-Article.padatetime).paginate(page=page, per_page=3)
+
     # 获取分类列表
     types = Article_type.query.all()
     # 判断用户是否登录
@@ -105,7 +111,7 @@ def register():
             db.session.add(user)
             db.session.commit()
             # return redirect(url_for('user/user_conter.html'))
-            return redirect(url_for('user.index'))
+            return redirect(url_for('user.login'))
     return render_template('user/register.html')
 
 
@@ -300,13 +306,15 @@ def photo_del():
     # 封装号的一个删除七牛云存储的函数
     info = del_qiniu(filename)
     if info.status_code == 200:
-        #删除数据库的内容
+        # 删除数据库的内容
         db.session.delete(photo)
         db.session.commit()
         return redirect(url_for('user.user_center'))
     else:
 
-        return render_template('500.html',err_msg='删除相册图片失败!')
+        return render_template('500.html', err_msg='删除相册图片失败!')
+
+
 # 我的相册
 @user_bp1.route('/myphoto')
 def myphoto():
@@ -315,7 +323,7 @@ def myphoto():
     # 分页，返回的是paginate对象
     photos = Photo.query.paginate(page=page, per_page=3)
 
-    user_id = session['uid']
+    user_id = session.get('uid', None)
     user = None
     if user_id:
         user = User.query.get(user_id)
@@ -326,5 +334,5 @@ def myphoto():
 
 @user_bp1.route('/error')
 def test_error():
-    referer = request.headers.get('Referer',None)
-    return render_template('500.html',err_msg="有误",referer=referer)
+    referer = request.headers.get('Referer', None)
+    return render_template('500.html', err_msg="有误", referer=referer)

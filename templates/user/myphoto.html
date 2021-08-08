@@ -38,7 +38,7 @@
     {% endfor %}
     <nav aria-label="...">
         <ul class="pager">
-            <li class="previous {% if not photos.has_prev %} disabled {% endif %}">
+            <li class="previous {% if not photos.prev_num %} disabled {% endif %}">
                 <a href="{{url_for('user.myphoto')}}?page={{photos.prev_num}}">
                     <span aria-hidden="true">&larr;</span>Older</a>
             </li>
