@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}
+    关于我
+{% endblock %}
+
+{% block styles %}
+    {{ super() }}
+    <style>
+        #container {
+            width: 1200px;
+            margin: 0 auto;
+        }
+
+        #container p {
+            width: 80%;
+            background-color: #83cae3;
+        }
+    </style>
+{% endblock %}
+
+{% block newcontent %}
+    <div id="container">
+        <p>
+            {{ user.about[0].content | cdecode2 | safe }}
+{#            {{ user.about.content | cdecode2 | safe }}#}
+        </p>
+    </div>
+{% endblock %}

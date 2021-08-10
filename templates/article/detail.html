@@ -121,7 +121,19 @@
 
             //收藏
             $('.glyphicon-heart').click(function () {
+                let $this = $(this);
+                let tag = $this.next('span').attr('tag');
+                $.get("{{ url_for('article.article_save') }}", {aid: '{{article.id}}', tag: tag}, function (data) {
+                    $this.next('span').text(data.num);
 
+                });
+                if (tag == 1) {
+                    $this.css({'color': 'black'});
+                    $this.next('span').attr('tag', "0")
+                } else {
+                    $this.css({'color': 'red'});
+                    $this.next('span').attr('tag', "1")
+                }
             });
             //点赞
             $('.glyphicon-thumbs-up').click(function () {

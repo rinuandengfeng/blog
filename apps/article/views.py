@@ -69,6 +69,20 @@ def article_love():
     return jsonify(num=article.love_num)
 
 
+# 收藏
+@article_bp1.route('/save')
+def article_save():
+    article_id = request.args.get('aid')
+    tag = request.args.get('tag')
+    article = Article.query.get(article_id)
+    if tag == '1':
+        article.save_num -= 1
+    else:
+        article.save_num += 1
+    db.session.commit()
+    return jsonify(num=article.save_num)
+
+
 # 发表文章的评论
 @article_bp1.route('/add_comment', methods=['GET', 'POST'])
 def article_comment():

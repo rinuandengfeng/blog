@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 
 from apps import app
 from apps.article.models import Article_type, Article
-from apps.user.models import User, Photo
+from apps.user.models import User, Photo, AboutMe
 from apps.user.smssend import SmsSendAPIDemo
 from apps.utils.utils import upload_qiniu, del_qiniu
 from exts import db
@@ -24,7 +24,8 @@ required_login_list = ['/user/center',
                        '/article/publish',
                        '/user/upload_photo',
                        '/user/photo_del',
-                       '/article/add_comment']
+                       '/article/add_comment',
+                       '/user/aboutme']
 
 
 @user_bp1.before_app_first_request
@@ -63,6 +64,12 @@ def teardown_request_test(response):
 def content_decode(content):
     content = content.decode(encoding='utf-8')
     return content[:10]
+
+
+@user_bp1.app_template_filter('cdecode2')
+def content_decode(content):
+    content = content.decode(encoding='utf-8')
+    return content
 
 
 # 首页
@@ -318,9 +325,9 @@ def photo_del():
 # 我的相册
 @user_bp1.route('/myphoto')
 def myphoto():
-    # 默认第一页
+    # 默认第一页  如果不转成整型，默认是str类型
     page = int(request.args.get('page', 1))
-    # 分页，返回的是paginate对象
+    # 分页操作 ，返回的是paginate对象  photos是一个paginate类型
     photos = Photo.query.paginate(page=page, per_page=3)
 
     user_id = session.get('uid', None)
@@ -330,6 +337,20 @@ def myphoto():
     else:
         user = user
     return render_template('user/myphoto.html', photos=photos, user=user)
+
+
+# 关于用户介绍添加
+@user_bp1.route('/aboutme', methods=['GET', 'POST'])
+def about_me():
+    content = request.form.get('about')
+    # 添加信息
+    aboutme = AboutMe()
+    aboutme.content = content.encode('utf-8')
+    aboutme.user_id = g.user.id
+    db.session.add(aboutme)
+    db.session.commit()
+
+    return render_template('user/aboutme.html', user=g.user)
 
 
 @user_bp1.route('/error')
