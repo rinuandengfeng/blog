@@ -10,7 +10,7 @@ from werkzeug.utils import secure_filename
 
 from apps import app
 from apps.article.models import Article_type, Article
-from apps.user.models import User, Photo, AboutMe
+from apps.user.models import User, Photo, AboutMe, MessageBoard
 from apps.user.smssend import SmsSendAPIDemo
 from apps.utils.utils import upload_qiniu, del_qiniu
 from exts import db
@@ -25,7 +25,8 @@ required_login_list = ['/user/center',
                        '/user/upload_photo',
                        '/user/photo_del',
                        '/article/add_comment',
-                       '/user/aboutme']
+                       '/user/aboutme',
+                       '/user/showabout']
 
 
 @user_bp1.before_app_first_request
@@ -63,7 +64,7 @@ def teardown_request_test(response):
 @user_bp1.app_template_filter('cdecode')
 def content_decode(content):
     content = content.decode(encoding='utf-8')
-    return content[:10]
+    return content[:200]
 
 
 @user_bp1.app_template_filter('cdecode2')
@@ -344,15 +345,65 @@ def myphoto():
 def about_me():
     content = request.form.get('about')
     # 添加信息
-    aboutme = AboutMe()
-    aboutme.content = content.encode('utf-8')
-    aboutme.user_id = g.user.id
-    db.session.add(aboutme)
-    db.session.commit()
+    # 异常处理
+    try:
+        aboutme = AboutMe()
+        aboutme.content = content.encode('utf-8')
+        aboutme.user_id = g.user.id
+        db.session.add(aboutme)
+        db.session.commit()
+    # 有错进入except
+    except Exception as err:
+        return redirect(url_for('user.user_center'))
+    # 没有错进入else
+    else:
+        return render_template('user/aboutme.html', user=g.user)
 
+
+@user_bp1.route('/showabout')
+def show_about():
     return render_template('user/aboutme.html', user=g.user)
 
 
+# 留言板
+@user_bp1.route('/board', methods=['GET', 'POST'])
+def show_board():
+    # 获取登录用户信息
+    uid = session.get('uid', None)
+    user = None
+    if uid:
+        user = User.query.get(uid)
+    # 查询所有的留言内容,并进行分页处理
+    page = request.args.get('page', 1)
+    page = int(page)
+    boards = MessageBoard.query.order_by(-MessageBoard.mdatetime).paginate(page=page, per_page=5)
+
+    # 判断当前的请求方式
+    if request.method == 'POST':
+        content = request.form.get('board')
+        # 添加留言内容
+        msg_board = MessageBoard()
+        msg_board.content = content
+        if uid:
+            msg_board.user_id = uid
+        db.session.add(msg_board)
+        db.session.commit()
+        return redirect(url_for('user.show_board'))
+    return render_template('user/board.html', user=user, boards=boards)
+
+
+# 留言删除
+@user_bp1.route('/board_del')
+def delete_board():
+    bid = request.args.get('bid')
+    if bid:
+        msgboard = MessageBoard.query.get(bid)
+        db.session.delete(msgboard)
+        db.session.commit()
+        return redirect(url_for('user.user_center'))
+
+
+# 错误的路由
 @user_bp1.route('/error')
 def test_error():
     referer = request.headers.get('Referer', None)

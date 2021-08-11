@@ -21,8 +21,13 @@
 {% block newcontent %}
     <div id="container">
         <p>
-            {{ user.about[0].content | cdecode2 | safe }}
-{#            {{ user.about.content | cdecode2 | safe }}#}
+            {% if not user.about %}
+                还没有设置关于的设置，可以去用户中心去设置~~~~~
+            {% else %}
+                {{ user.about[0].content | cdecode2 | safe }}
+            {% endif %}
+
+            {#            {{ user.about.content | cdecode2 | safe }}#}
         </p>
     </div>
 {% endblock %}

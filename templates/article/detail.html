@@ -10,8 +10,25 @@
             margin: 0 auto;
         }
 
+        #detail {
+            background-color: rgba(232, 243, 242, 0.6);
+            border-radius: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            padding: 20px 50px;
+        }
+
         #container p {
             overflow: auto;
+        }
+
+        #detail h2 {
+            text-align: center;
+        }
+
+        #detail h2 + div {
+            height: 30px;
+            line-height: 30px;
         }
 
         #left {
@@ -20,10 +37,35 @@
 
         #right {
             float: right;
+            margin-right: 30px;
         }
 
         #content {
             margin-top: 30px;
+        }
+
+        #item {
+            overflow: auto;
+            border-bottom: 1px solid lightgray;
+            margin-bottom: 20px;
+            padding: 10px;
+        }
+
+        #item_left {
+            float: left;
+            width: 10%;
+            text-align: center;
+        }
+
+        #item_left img {
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+        }
+
+        #item_right {
+            float: right;
+            width: 90%;
         }
     </style>
 {% endblock %}
@@ -31,7 +73,6 @@
     <div id="container">
         <div id="detail">
             <h2>{{ article.title }}</h2>
-
             <p>
             <div id="left">作者:{{ article.user.username }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 发布时间:{{ article.padatetime }}
@@ -83,6 +124,7 @@
                                     <p>
                                         {{ comment.comment }}
                                     </p>
+
                                 </div>
                             </div>
                         {% endfor %}

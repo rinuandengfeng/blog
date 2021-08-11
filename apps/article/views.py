@@ -13,6 +13,11 @@ def content_decode(content):
     content = content.decode(encoding='UTF-8')
     return content
 
+@article_bp1.app_template_filter('cdecode3')
+def content_decode(content):
+    content = content.decode(encoding='UTF-8')
+    return content[:10]
+
 
 # 发表文章
 @article_bp1.route('/publish', methods=['POST', 'GET'])
@@ -100,3 +105,27 @@ def article_comment():
         db.session.commit()
         return redirect(url_for('article.article_detail') + "?aid=" + article_id)
     return redirect(url_for('user.index'))
+
+
+# 文章分类检索
+@article_bp1.route('/type_search')
+def type_search():
+    # 用户对象的一个判断
+    uid = session.get('uid')
+    user = None
+    if uid:
+        user = User.query.get(uid)
+    # 文章分类获取
+
+    types = Article_type.query.all()
+    # tid的获取
+    tid = request.args.get('tid', 1)
+    type = Article_type.query.get(tid)
+
+    # 分页
+    page = request.args.get('page', 1)
+    page = int(page)
+    paginate = Article.query.filter(Article.type_id == tid).order_by(-Article.padatetime).paginate(page=page,
+                                                                                                   per_page=3)
+
+    return render_template('article/article_type.html', user=user, types=types, type=type, paginate=paginate)
