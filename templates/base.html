@@ -25,7 +25,6 @@
             right: 130px;
 
         }
-
     </style>
 
 {% endblock %}
@@ -46,7 +45,6 @@
                 </button>
                 <a class="navbar-brand" href="#">个人博客</a>
             </div>
-
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
@@ -60,10 +58,14 @@
                         <ul class="dropdown-menu">
                             {% for type in types %}
                                 {% if not loop.last %}
-                                    <li><a href="{{url_for('article.type_search')}}?tid={{ type.id }}">{{ type.type_name }}</a></li>
+                                    <li>
+                                        <a href="{{ url_for('article.type_search') }}?tid={{ type.id }}">{{ type.type_name }}</a>
+                                    </li>
                                     <li role="separator" class="divider"></li>
                                 {% else %}
-                                    <li><a href="{{url_for('article.type_search')}}?tid={{ type.id }}">{{ type.type_name }}</a></li>
+                                    <li>
+                                        <a href="{{ url_for('article.type_search') }}?tid={{ type.id }}">{{ type.type_name }}</a>
+                                    </li>
                                 {% endif %}
                             {% endfor %}
                         </ul>
@@ -83,11 +85,12 @@
                 <!--                    alt="" width="50" height="50"></div>-->
                 <div id="user_img">
                     {% if user %}
-                        <img
-                                src="{{ url_for('static',filename=user.icon) }}"
-                                alt="" width="50" height="50">
+                        <img src="{% if user.icon %}{{ url_for('static',filename=user.icon) }} {% else %}
+                        {{ url_for('static',filename='images/touxiang.jpg') }}{% endif %} "
+                             alt="" width="50" height="50">
+
                     {% else %}
-                        <img src="{{ url_for('static',filename='images/touxiang.jpg') }}" alt="" width="50" height="50">
+                        <img src="../static/images/touxiang.jpg" alt="" width="50" height="50">
                     {% endif %}
                 </div>
 

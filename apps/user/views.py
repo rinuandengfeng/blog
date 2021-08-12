@@ -375,9 +375,9 @@ def show_board():
     if uid:
         user = User.query.get(uid)
     # 查询所有的留言内容,并进行分页处理
-    page = request.args.get('page', 1)
-    page = int(page)
-    boards = MessageBoard.query.order_by(-MessageBoard.mdatetime).paginate(page=page, per_page=3)
+        page = request.args.get('page', 1)
+        page = int(page)
+        boards = MessageBoard.query.order_by(-MessageBoard.mdatetime).paginate(page=page, per_page=3)
 
     # 判断当前的请求方式
     if request.method == 'POST':

@@ -35,20 +35,6 @@
                     <p><input type="file" id="exampleInputFile" name="icon"></p>
                     <p>
                         <img src="
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                 {% if g.user.icon %}{{ url_for('static',filename=user.icon) }} {% else %}{{ url_for('static',filename='images/touxiang.jpg') }}{% endif %}"
                              alt="" width="90" height="100">
                     </p>

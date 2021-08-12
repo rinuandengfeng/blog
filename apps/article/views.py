@@ -116,7 +116,6 @@ def type_search():
     if uid:
         user = User.query.get(uid)
     # 文章分类获取
-
     types = Article_type.query.all()
     # tid的获取
     tid = request.args.get('tid', 1)

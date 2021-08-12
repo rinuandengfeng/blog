@@ -8,6 +8,7 @@
 {% block styles %}
     {{ super() }}
     <style>
+
         #container {
             width: 1000px;
             margin: 0 auto;
@@ -46,6 +47,7 @@
 
         }
 
+
     </style>
 
 {% endblock %}
@@ -62,7 +64,7 @@
                     <br>
                     <br>
                     <!--safe 过滤器不对文章的html进行转义-->
-                <div >{{ article.content | cdecode | safe }}</div>
+                <div>{{ article.content | cdecode | safe }}</div>
                 </p>
                 <div style="color: #1a1a1a">
                     <span style="margin-left: 0 ">发表时间:{{ article.padatetime }}</span>
@@ -70,7 +72,7 @@
                 </div>
             </div>
         {% endfor %}
-        <nav aria-label="Page navigation" class="col-md-offset-5">
+        <nav aria-label="Page navigation" class="col-md-offset-4">
             <ul class="pagination">
                 <!--   pagination.prev_num 判断是否存在上一页，如果存在则可以点击，否则不能点击             -->
                 <li {% if not pagination.prev_num %} class="disabled" {% endif %}><a
