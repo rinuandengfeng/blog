@@ -37,19 +37,40 @@ $(function () {
         });
 
     });
+
     //相册图片的删除
     $('.photo_del').click(function () {
         //判断是否删除
         flag = confirm('确定删除此图片嘛?')
-        if(flag){
-           //获取属性值tag,tag属性的值就是图片的主键
-        //拿住照片的id
-        let pid = $(this).attr('tag')
-        //1. ajax , 2.location.href
-        //外部链接不能使用模板，模板语法只能在模板中使用
-        location.href = '/user/photo_del?pid=' + pid;
+        if (flag) {
+            //获取属性值tag,tag属性的值就是图片的主键
+            //拿住照片的id
+            let pid = $(this).attr('tag')
+            //1. ajax , 2.location.href
+            //外部链接不能使用模板，模板语法只能在模板中使用
+            location.href = '/user/photo_del?pid=' + pid;
         }
 
 
     });
+
+    //留言删除
+    $('.board_del').click(function () {
+        //判断是否删除
+        flag = confirm('确定删除此留言嘛?')
+        if (flag) {
+            //获取属性值tag,tag属性的值就是留言的主键
+            //拿住留言的id
+            let bid = $(this).attr('tag')
+            //1. ajax , 2.location.href
+            //外部链接不能使用模板，模板语法只能在模板中使用
+            location.href = '/user/board_del?bid=' + bid;
+        }
+
+    });
+
+    $('.publish_article').click(function () {
+            alert("发表成功！");
+    })
 });
+

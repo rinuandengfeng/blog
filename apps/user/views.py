@@ -64,7 +64,7 @@ def teardown_request_test(response):
 @user_bp1.app_template_filter('cdecode')
 def content_decode(content):
     content = content.decode(encoding='utf-8')
-    return content[:200]
+    return content[:100]
 
 
 @user_bp1.app_template_filter('cdecode2')
@@ -360,6 +360,7 @@ def about_me():
         return render_template('user/aboutme.html', user=g.user)
 
 
+# 关于我的路由
 @user_bp1.route('/showabout')
 def show_about():
     return render_template('user/aboutme.html', user=g.user)
@@ -376,7 +377,7 @@ def show_board():
     # 查询所有的留言内容,并进行分页处理
     page = request.args.get('page', 1)
     page = int(page)
-    boards = MessageBoard.query.order_by(-MessageBoard.mdatetime).paginate(page=page, per_page=5)
+    boards = MessageBoard.query.order_by(-MessageBoard.mdatetime).paginate(page=page, per_page=3)
 
     # 判断当前的请求方式
     if request.method == 'POST':
