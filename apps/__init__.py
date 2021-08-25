@@ -15,7 +15,7 @@ config = {
 
 def create_app():
     # 导入配置文件
-    app.config.from_object(settings.DevelopmentConfig)
+    app.config.from_object(settings.ProductionConfig)
     # 初始化配置db
     db.init_app(app=app)
     # 初始化bootstarp

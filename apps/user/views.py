@@ -106,20 +106,20 @@ def register():
         repassword = request.form.get('repassword')
         phone = request.form.get('phone')
         email = request.form.get('email')
-
-        if password == repassword:
-            # 注册用户
-            user = User()
-            user.username = username
-            # 使用flask自带的函数实现密码加密：generater_password_hash()
-            user.password = generate_password_hash(password)
-            user.phone = phone
-            user.email = email
-            # 添加并提交
-            db.session.add(user)
-            db.session.commit()
-            # return redirect(url_for('user/user_conter.html'))
-            return redirect(url_for('user.login'))
+        if len(phone) == 11:
+            if password == repassword:
+                # 注册用户
+                user = User()
+                user.username = username
+                # 使用flask自带的函数实现密码加密：generater_password_hash()
+                user.password = generate_password_hash(password)
+                user.phone = phone
+                user.email = email
+                # 添加并提交
+                db.session.add(user)
+                db.session.commit()
+                # return redirect(url_for('user/user_conter.html'))
+                return redirect(url_for('user.login'))
     return render_template('user/register.html')
 
 
@@ -127,13 +127,17 @@ def register():
 @user_bp1.route('/checkphone', methods=['GET', 'POST'])
 def check_phone():
     phone = request.args.get('phone')
+
     user = User.query.filter(User.phone == phone).all()
     # ajax的返回值必须是json格式
     # code:400  不能用  200  可以用
-    if len(user) > 0:
-        return jsonify(code=400, msg='此号码已被注册')
+    if len(phone) == 11:
+        if len(user) > 0:
+            return jsonify(code=400, msg='此号码已被注册')
+        else:
+            return jsonify(code=200, msg='此号码可以用')
     else:
-        return jsonify(code=200, msg='此号码可以用')
+        return jsonify(code=400,msg="手机号码输入错误!")
 
 
 # 用户登录
@@ -145,37 +149,43 @@ def login():
         if f == '1':
             username = request.form.get('username')
             password = request.form.get('password')
-            users = User.query.filter(User.username == username).all()
-            for user in users:
-                # 如果flag=Ture表示匹配，否则密码不匹配
-                flag = check_password_hash(user.password, password)
-                if flag:
-                    # 1.cookie实现机制
-                    # respone = redirect(url_for('user.index'))
-                    # respone.set_cookie('uid', str(user.id), max_age=1800)
-                    # return respone
-                    # 2.session机制 , session当成字典使用
-                    session['uid'] = user.id
-                    return redirect(url_for('user.index'))
-                else:
-                    return render_template('user/login.html', msg="用户名或者密码错误！")
+            if username:
+                users = User.query.filter(User.username == username).all()
+                for user in users:
+                    # 如果flag=Ture表示匹配，否则密码不匹配
+                    flag = check_password_hash(user.password, password)
+                    if flag:
+                        # 1.cookie实现机制
+                        # respone = redirect(url_for('user.index'))
+                        # respone.set_cookie('uid', str(user.id), max_age=1800)
+                        # return respone
+                        # 2.session机制 , session当成字典使用
+                        session['uid'] = user.id
+                        return redirect(url_for('user.index'))
+                    else:
+                        return render_template('user/login.html', msg="用户名或者密码错误！")
+            else:
+                return render_template('user/login.html', msg="用户名或者密码错误！")
         # 手机号码与验证码
         elif f == '2':
             phone = request.form.get('phone')
             code = request.form.get('code')
             # 先验证验证码
-            valide_code = session.get(phone)
-            if code == valide_code:
-                # 查询数据库
-                user = User.query.filter(User.phone == phone).all()
-                if user:
-                    # 登录成功
-                    session['uid'] = user.id
-                    return redirect(url_for('user.index'))
+            if phone:
+                valide_code = session.get(phone)
+                if code == valide_code:
+                    # 查询数据库
+                    user = User.query.filter(User.phone == phone).all()
+                    if user:
+                        # 登录成功
+                        session['uid'] = user.id
+                        return redirect(url_for('user.index'))
+                    else:
+                        return render_template('user.login', msg='此号码未注册！')
                 else:
-                    return render_template('user.login', msg='此号码未注册！')
+                    return render_template('user/login.html', msg='验证码有误!')
             else:
-                return render_template('user/login.html', msg='验证码有误!')
+                return render_template('user/login.html', msg='请输入正确的手机号和验证码!')
     return render_template('user/login.html')
 
 
