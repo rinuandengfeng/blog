@@ -12,7 +12,7 @@ from apps import app
 from apps.article.models import Article_type, Article
 from apps.user.models import User, Photo, AboutMe, MessageBoard
 from apps.user.smssend import SmsSendAPIDemo
-from apps.utils.utils import upload_qiniu, del_qiniu
+from apps.utils.utils import upload_qiniu, del_qiniu, user_type
 from exts import db
 from settings import Config
 
@@ -184,33 +184,19 @@ def login():
 def send_message():
     phone = request.args.get('phone')
     # 验证手机号码是否注册，去数据库查询
-    # user = User.query.filter(User.phone==phone).first()
-    # if user:
-    SECRET_ID = "53633b57748f98ad5e645fc3b3db63f7"  # 产品密钥ID，产品标识
-    SECRET_KEY = "b02b75ed758849e2c65afdc521f3b6fa"  # 产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
-    BUSINESS_ID = "9dbcb28d4229401782a556990562b6af"  # 业务ID，易盾根据产品业务特点分配
-    api = SmsSendAPIDemo(SECRET_ID, SECRET_KEY, BUSINESS_ID)
-    params = {
-        "mobile": "phone",
-        "templateId": "10084",
-        "paramType": "json",
-        "params": "json格式字符串"
-    }
-    ret = api.send(params)
-    session[phone] = '189705'
-    return jsonify(code=200, msg='短信发送成功！')
-    # if ret is not None:
-    #     if ret["code"] == 200:
-    #         taskId = ret["data"]["taskId"]
-    #         print("taskId = %s" % taskId)
-    #         session[phone]='189075'    #不局限在send_message这个函数使用
-    #         return jsonify(code=200, msg='短信发送成功！')
-    #     else:
-    #         print("ERROR: ret.code=%s,msg=%s" % (ret['code'], ret['msg']))
-    #         return jsonify(code=400, msg='短信发送失败！')
+    ret, code = send_message(phone)
+    if ret is not None:
+        if ret["code"] == 200:
+            taskId = ret["data"]["taskId"]
+            print("taskId = %s" % taskId)
+            session[phone] = '189075'  # 不局限在send_message这个函数使用
+            return jsonify(code=200, msg='短信发送成功！')
+        else:
+            print("ERROR: ret.code=%s,msg=%s" % (ret['code'], ret['msg']))
+            return jsonify(code=400, msg='短信发送失败！')
 
-    # else:
-    #     return jsonify(code=400,msg='手机号码没有注册!')
+    else:
+        return jsonify(code=400, msg='手机号码没有注册!')
 
 
 # 用户退出
@@ -330,14 +316,8 @@ def myphoto():
     page = int(request.args.get('page', 1))
     # 分页操作 ，返回的是paginate对象  photos是一个paginate类型
     photos = Photo.query.paginate(page=page, per_page=3)
-
-    user_id = session.get('uid', None)
-    user = None
-    if user_id:
-        user = User.query.get(user_id)
-    else:
-        user = user
-    return render_template('user/myphoto.html', photos=photos, user=user)
+    user, types = user_type
+    return render_template('user/myphoto.html', photos=photos, user=user, types=types)
 
 
 # 关于用户介绍添加
@@ -360,10 +340,11 @@ def about_me():
         return render_template('user/aboutme.html', user=g.user)
 
 
-# 关于我的路由
+# 展示关于我
 @user_bp1.route('/showabout')
 def show_about():
-    return render_template('user/aboutme.html', user=g.user)
+    user, types = user_type()
+    return render_template('user/aboutme.html', user=g.user, types=types)
 
 
 # 留言板
@@ -374,7 +355,7 @@ def show_board():
     user = None
     if uid:
         user = User.query.get(uid)
-    # 查询所有的留言内容,并进行分页处理
+        # 查询所有的留言内容,并进行分页处理
         page = request.args.get('page', 1)
         page = int(page)
         boards = MessageBoard.query.order_by(-MessageBoard.mdatetime).paginate(page=page, per_page=3)
@@ -390,7 +371,8 @@ def show_board():
         db.session.add(msg_board)
         db.session.commit()
         return redirect(url_for('user.show_board'))
-    return render_template('user/board.html', user=user, boards=boards)
+    user, types = user_type()
+    return render_template('user/board.html', user=user, boards=boards, types=types)
 
 
 # 留言删除

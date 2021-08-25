@@ -1,13 +1,18 @@
 import os
 import random
 
+from flask import session
 from qiniu import Auth, put_file, etag, put_data, BucketManager
 import qiniu.config
+
+from apps.article.models import Article, Article_type
+from apps.user.models import User
+from apps.user.smssend import SmsSendAPIDemo
 from settings import Config
+
 
 def upload_qiniu(filestorage):
     # 需要填写你的 Access Key 和 Secret Key
-
 
     access_key = 'MnbL-ZEB56Qfd6zYieG1rWZmfyTNPOGtOCNMkWbA'
     secret_key = 'LYuWGlJq8_FxKH-d_BNiwKsdhQ8rNm-THfUyP6yr'
@@ -40,7 +45,6 @@ def upload_qiniu(filestorage):
     return info, key
 
 
-
 def del_qiniu(filename):
     access_key = 'MnbL-ZEB56Qfd6zYieG1rWZmfyTNPOGtOCNMkWbA'
     secret_key = 'LYuWGlJq8_FxKH-d_BNiwKsdhQ8rNm-THfUyP6yr'
@@ -52,7 +56,42 @@ def del_qiniu(filename):
     bucket_name = 'myblog20'
     # 初始化BucketManager
     bucket = BucketManager(q)
-    #文件的名字 key是要删除的文件的名字
+    # 文件的名字 key是要删除的文件的名字
     key = filename
     ret, info = bucket.delete(bucket_name, key)
     return info
+
+
+def user_type():
+    # 获取文章分类
+    types = Article_type.query.all()
+    # 登录用户
+    user = None
+    user_id = session.get('uid', None)
+    if user_id:
+        user = User.query.get(user_id)
+    return user, types
+
+
+# 发送短信
+def send_message(phone):
+    """示例代码入口"""
+    SECRET_ID = "b8bd68caf02d1ea89941382347d354fd"  # 产品密钥ID，产品标识
+    SECRET_KEY = "41992a16b5bed476fab972118b23f319"  # 产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
+    BUSINESS_ID = "ef52f46eb8d64cb980a9e441f392e600"  # 业务ID，易盾根据产品业务特点分配
+    api = SmsSendAPIDemo(SECRET_ID, SECRET_KEY, BUSINESS_ID )
+
+    code = ""
+    for i in range(4):
+        ran = random.randint(0, 9)
+        code += str(ran)
+    params = {
+        "mobile": phone,
+        "templateId": "10084",
+        "paramType": "json",
+        "params": {"code": code}
+        # 国际短信对应的国际编码(非国际短信接入请注释掉该行代码)
+        # "internationalCode": "对应的国家编码"
+    }
+    ret = api.send(params)
+    return ret,code

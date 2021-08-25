@@ -7,6 +7,10 @@ import urllib.request
 import requests
 
 
+
+
+
+
 class SmsSendAPIDemo(object):
     """易盾短信发送接口示例代码"""
     API_URL = "https://sms.dun.163.com/v2/sendsms"
@@ -63,9 +67,9 @@ class SmsSendAPIDemo(object):
 
 if __name__ == "__main__":
     """示例代码入口"""
-    SECRET_ID = "53633b57748f98ad5e645fc3b3db63f7"  # 产品密钥ID，产品标识
-    SECRET_KEY = "b02b75ed758849e2c65afdc521f3b6fa"  # 产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
-    BUSINESS_ID = "9dbcb28d4229401782a556990562b6af"  # 业务ID，易盾根据产品业务特点分配
+    SECRET_ID = "b8bd68caf02d1ea89941382347d354fd"  # 产品密钥ID，产品标识
+    SECRET_KEY = "41992a16b5bed476fab972118b23f319"  # 产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
+    BUSINESS_ID = "ef52f46eb8d64cb980a9e441f392e600"  # 业务ID，易盾根据产品业务特点分配
     api = SmsSendAPIDemo(SECRET_ID, SECRET_KEY, BUSINESS_ID)
 
     params = {
