@@ -12,8 +12,8 @@ from apps import app
 from apps.article.models import Article_type, Article
 from apps.user.models import User, Photo, AboutMe, MessageBoard
 from apps.user.smssend import SmsSendAPIDemo
-from apps.utils.utils import upload_qiniu, del_qiniu, user_type
-from exts import db
+from apps.utils.utils import upload_qiniu, del_qiniu, user_type, send_messages
+from exts import db, cache
 from settings import Config
 
 user_bp1 = Blueprint('user', __name__, url_prefix='/user')
@@ -75,6 +75,7 @@ def content_decode(content):
 
 # 首页
 @user_bp1.route('/')
+
 def index():
     # 1.cookie获取方式
     # uid = request.cookies.get('uid', None)
@@ -95,6 +96,8 @@ def index():
         return render_template('user/index.html', user=user, pagination=pagination, types=types)
     else:
         return render_template('user/index.html', pagination=pagination, types=types)
+
+
 
 
 # 注册用户路由
@@ -137,7 +140,7 @@ def check_phone():
         else:
             return jsonify(code=200, msg='此号码可以用')
     else:
-        return jsonify(code=400,msg="手机号码输入错误!")
+        return jsonify(code=400, msg="手机号码输入错误!")
 
 
 # 用户登录
@@ -171,11 +174,12 @@ def login():
             phone = request.form.get('phone')
             code = request.form.get('code')
             # 先验证验证码
+            # 从缓存中根据key获取value
+            valide_code = cache.get(phone)
             if phone:
-                valide_code = session.get(phone)
                 if code == valide_code:
                     # 查询数据库
-                    user = User.query.filter(User.phone == phone).all()
+                    user = User.query.filter(User.phone == phone).first()
                     if user:
                         # 登录成功
                         session['uid'] = user.id
@@ -194,12 +198,12 @@ def login():
 def send_message():
     phone = request.args.get('phone')
     # 验证手机号码是否注册，去数据库查询
-    ret, code = send_message(phone)
+    ret, code = send_messages(phone)
     if ret is not None:
         if ret["code"] == 200:
-            taskId = ret["data"]["taskId"]
-            print("taskId = %s" % taskId)
-            session[phone] = '189075'  # 不局限在send_message这个函数使用
+            # 使用redis
+            # cache.set(key,claue,timeout=second)
+            cache.set(phone, code, timeout=180)
             return jsonify(code=200, msg='短信发送成功！')
         else:
             print("ERROR: ret.code=%s,msg=%s" % (ret['code'], ret['msg']))

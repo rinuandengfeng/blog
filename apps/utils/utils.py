@@ -74,24 +74,24 @@ def user_type():
 
 
 # 发送短信
-def send_message(phone):
+def send_messages(phone):
     """示例代码入口"""
     SECRET_ID = "b8bd68caf02d1ea89941382347d354fd"  # 产品密钥ID，产品标识
     SECRET_KEY = "41992a16b5bed476fab972118b23f319"  # 产品私有密钥，服务端生成签名信息使用，请严格保管，避免泄露
     BUSINESS_ID = "ef52f46eb8d64cb980a9e441f392e600"  # 业务ID，易盾根据产品业务特点分配
-    api = SmsSendAPIDemo(SECRET_ID, SECRET_KEY, BUSINESS_ID )
+    api = SmsSendAPIDemo(SECRET_ID, SECRET_KEY, BUSINESS_ID)
 
     code = ""
-    for i in range(4):
+    for i in range(6):
         ran = random.randint(0, 9)
         code += str(ran)
     params = {
         "mobile": phone,
-        "templateId": "10084",
+        "templateId": "15022",
         "paramType": "json",
         "params": {"code": code}
         # 国际短信对应的国际编码(非国际短信接入请注释掉该行代码)
         # "internationalCode": "对应的国家编码"
     }
     ret = api.send(params)
-    return ret,code
+    return ret, code

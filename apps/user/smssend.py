@@ -1,3 +1,4 @@
+import ssl
 from hashlib import md5
 import json
 import random
@@ -5,10 +6,6 @@ import time
 import urllib
 import urllib.request
 import requests
-
-
-
-
 
 
 class SmsSendAPIDemo(object):
@@ -55,12 +52,14 @@ class SmsSendAPIDemo(object):
         params["signature"] = self.gen_signature(params)
 
         try:
-            # params = urllib.parse.urlencode(params)
-            # params = params.encode('utf-8')
-            # request = urllib.request.Request(self.API_URL, params)
-            # content = urllib.request.urlopen(request, timeout=5).read()
-            response = requests.post(self.API_URL, data=params)
-            return response.json()
+            params = urllib.parse.urlencode(params)
+            params = params.encode('utf-8')
+            context = ssl._create_unverified_context()  # 忽略安全
+            request = urllib.request.Request(self.API_URL, params)
+            response = urllib.request.urlopen(request, timeout=1, context=context)
+            content = response.read()
+            # response = requests.post(self.API_URL, data=params)
+            return json.loads(content)
         except Exception as ex:
             print("调用API接口失败:", str(ex))
 
@@ -72,11 +71,16 @@ if __name__ == "__main__":
     BUSINESS_ID = "ef52f46eb8d64cb980a9e441f392e600"  # 业务ID，易盾根据产品业务特点分配
     api = SmsSendAPIDemo(SECRET_ID, SECRET_KEY, BUSINESS_ID)
 
+    code = ""
+    for i in range(4):
+        ran = random.randint(0, 9)
+        code += str(ran)
+
     params = {
         "mobile": "15239330590",
-        "templateId": "10084",
+        "templateId": "15022",
         "paramType": "json",
-        "params": "json格式字符串"
+        "params": {"code": code}
         # 国际短信对应的国际编码(非国际短信接入请注释掉该行代码)
         # "internationalCode": "对应的国家编码"
     }
@@ -84,7 +88,7 @@ if __name__ == "__main__":
     print(ret)
     if ret is not None:
         if ret["code"] == 200:
-            taskId = ret["data"]["taskId"]
+            taskId = ret["data"]["requestId"]
             print("taskId = %s" % taskId)
         else:
             print("ERROR: ret.code=%s,msg=%s" % (ret['code'], ret['msg']))
