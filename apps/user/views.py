@@ -75,7 +75,6 @@ def content_decode(content):
 
 # 首页
 @user_bp1.route('/')
-
 def index():
     # 1.cookie获取方式
     # uid = request.cookies.get('uid', None)
@@ -96,8 +95,6 @@ def index():
         return render_template('user/index.html', user=user, pagination=pagination, types=types)
     else:
         return render_template('user/index.html', pagination=pagination, types=types)
-
-
 
 
 # 注册用户路由
@@ -330,7 +327,7 @@ def myphoto():
     page = int(request.args.get('page', 1))
     # 分页操作 ，返回的是paginate对象  photos是一个paginate类型
     photos = Photo.query.paginate(page=page, per_page=3)
-    user, types = user_type
+    user, types = user_type()
     return render_template('user/myphoto.html', photos=photos, user=user, types=types)
 
 
